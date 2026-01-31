@@ -1,4 +1,4 @@
-# ESP8266 LED Matrix Clock with Weather & Web Monitor**
+# ESP8266 LED Matrix Clock with Weather & Web Monitor
 
 Um relógio inteligente baseado em ESP8266 com matriz LED 8x32,
 sincronização NTP, informações meteorológicas, controle automático de
