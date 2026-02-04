@@ -138,8 +138,6 @@ brilho e **monitoramento web completo**.
 - Opção B: Aguarde o contador terminar para modo automático
 
 # ⚙️ Portal de Configuração
-![Relogio ESP01S NTP clima portal monitor web](https://github.com/em-rezende/relogio_ESP01S_NTP_clima_portal_monitor_web/blob/main/1.png)
-
 ## Portal de Configuração
 - Se escolher modo configuração:
 - Conecte-se ao WiFi "Relogio NTP+Clima"
@@ -147,8 +145,6 @@ brilho e **monitoramento web completo**.
 - Configure os parâmetros:
 
 # 🕒 Parâmetros do Relógio:
-![Relogio ESP01S NTP clima portal monitor web](https://github.com/em-rezende/relogio_ESP01S_NTP_clima_portal_monitor_web/blob/main/2.png)
-
 ## Parâmetros do Relógio:
 - UTC Offset: Fuso horário (ex: -3.0 para Brasília)
 - Formato 12h: true/false para formato 12 ou 24 horas
@@ -165,8 +161,6 @@ brilho e **monitoramento web completo**.
 - Atualizar clima a cada: Minutos entre atualizações (padrão: 30)
 
 # 🌐 Monitor Web
-![Relogio ESP01S NTP clima portal monitor web](https://github.com/em-rezende/relogio_ESP01S_NTP_clima_portal_monitor_web/blob/main/3.png)
-
 ## Acesso ao Monitor
 - Após a configuração inicial, o ESP exibirá seu IP local
 - Abra um navegador e acesse: http://[IP_DO_ESP]
