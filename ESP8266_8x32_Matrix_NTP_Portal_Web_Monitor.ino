@@ -648,9 +648,8 @@ void updateTime() {
     mo = timeinfo->tm_mon + 1;
     ye = timeinfo->tm_year + 1900;
 
-    w = timeinfo->tm_wday;
-    if (w == 0) w = 7;
-    
+    w = timeinfo->tm_wday; // 0=Domingo, 1=Segunda, etc.
+   
     updateInfoString();
   }
 }
@@ -741,7 +740,7 @@ void updateWeatherData() {
 
 /* ================== FUNÇÃO PARA ATUALIZAR STRING DE INFO ================== */
 void updateInfoString() {
-  infoString = String(dayNames[w - 1]) + ", " + String(d) + " " + 
+  infoString = String(dayNames[w]) + ", " + String(d) + " " + 
                monthNames[mo - 1] + " " + String(ye);
   
   if (weatherEnabled && weatherAPIKey.length() > 0) {
@@ -1254,6 +1253,7 @@ String getHTML() {
   html += "<div class='section'>";
   html += "<p><small>ESP8266 LED Matrix Clock v2.0 • ";
   html += String(dayNames[w-1]) + ", " + String(d) + " " + monthNames[mo-1] + " " + String(ye);
+  html += String(dayNames[w]) + ", " + String(d) + " " + monthNames[mo-1] + " " + String(ye);
   html += "</small></p>";
   html += "</div>";
   
