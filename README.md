@@ -457,4 +457,3 @@ Aproveite seu relógio inteligente com monitoramento web! 🎉
 Versão do Software: 2.0 (com Monitor Web)
 *Compatível com: ESP-01S, NodeMCU ESP-12E*
 *Requisitos: Arduino IDE 1.8+, ESP8266 Core 2.7.4+*
-
