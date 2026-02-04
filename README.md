@@ -9,6 +9,17 @@ brilho e **monitoramento web completo**.
 [![Licença MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-orange)](https://img.shields.io/badge/Licen%C3%A7a-MIT-orange)
 [![Web Monitor](https://img.shields.io/badge/Web%20Monitor-Simulado%208x32-brightgreen)](https://img.shields.io/badge/Web%20Monitor-Simulado%208x32-brightgreen)
 
+## 🖼️Interface Gráfica
+
+<div align="left">
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+    <img src="docs/1.png" alt="Interface 1" style="width: 30%; height: 30%; border-radius: 8px;">
+    <img src="docs/2.png" alt="Interface 2" style="width: 30%; height: 30%; border-radius: 8px;">
+    <img src="docs/3.png" alt="Interface 3" style="width: 30%; height: 30%; border-radius: 8px;">
+  </div>
+  <p><em>Visão completa da interface</em></p>
+</div>
+
 
 # 📋 Características Principais
 
