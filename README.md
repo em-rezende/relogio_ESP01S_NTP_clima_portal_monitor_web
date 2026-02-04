@@ -9,6 +9,7 @@ brilho e **monitoramento web completo**.
 [![Licença MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-orange)](https://img.shields.io/badge/Licen%C3%A7a-MIT-orange)
 [![Web Monitor](https://img.shields.io/badge/Web%20Monitor-Simulado%208x32-brightgreen)](https://img.shields.io/badge/Web%20Monitor-Simulado%208x32-brightgreen)
 
+
 # 📋 Características Principais
 
 ## 🕒 Relógio Inteligente
@@ -125,11 +126,17 @@ brilho e **monitoramento web completo**.
 - Opção A: Pressione o botão durante o contador para modo configuração
 - Opção B: Aguarde o contador terminar para modo automático
 
+# ⚙️ Portal de Configuração
+![Relogio ESP01S NTP clima portal monitor web](https://github.com/em-rezende/relogio_ESP01S_NTP_clima_portal_monitor_web/blob/main/1.png)
+
 ## Portal de Configuração
 - Se escolher modo configuração:
 - Conecte-se ao WiFi "Relogio NTP+Clima"
 - Abra o navegador em 192.168.4.1
 - Configure os parâmetros:
+
+# 🕒 Parâmetros do Relógio:
+![Relogio ESP01S NTP clima portal monitor web](https://github.com/em-rezende/relogio_ESP01S_NTP_clima_portal_monitor_web/blob/main/2.png)
 
 ## Parâmetros do Relógio:
 - UTC Offset: Fuso horário (ex: -3.0 para Brasília)
@@ -147,6 +154,8 @@ brilho e **monitoramento web completo**.
 - Atualizar clima a cada: Minutos entre atualizações (padrão: 30)
 
 # 🌐 Monitor Web
+![Relogio ESP01S NTP clima portal monitor web](https://github.com/em-rezende/relogio_ESP01S_NTP_clima_portal_monitor_web/blob/main/3.png)
+
 ## Acesso ao Monitor
 - Após a configuração inicial, o ESP exibirá seu IP local
 - Abra um navegador e acesse: http://[IP_DO_ESP]
