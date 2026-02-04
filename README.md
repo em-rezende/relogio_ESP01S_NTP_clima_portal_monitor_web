@@ -13,9 +13,9 @@ brilho e **monitoramento web completo**.
 
 <div align="left">
   <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
-    <img src="docs/1.png" alt="Interface 1" style="width: 30%; height: 30%; border-radius: 8px;">
-    <img src="docs/2.png" alt="Interface 2" style="width: 30%; height: 30%; border-radius: 8px;">
-    <img src="docs/3.png" alt="Interface 3" style="width: 30%; height: 30%; border-radius: 8px;">
+    <img src="1.png" alt="Interface 1" style="width: 30%; height: 30%; border-radius: 8px;">
+    <img src="2.png" alt="Interface 2" style="width: 30%; height: 30%; border-radius: 8px;">
+    <img src="3.png" alt="Interface 3" style="width: 30%; height: 30%; border-radius: 8px;">
   </div>
   <p><em>Visão completa da interface</em></p>
 </div>
