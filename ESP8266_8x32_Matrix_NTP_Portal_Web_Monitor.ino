@@ -4,8 +4,9 @@
  * Autor: Ezequiel M Rezende / Deepseek
  * 2026/01/02 - Início
  * 2026/01/28 - Modificado: Servidor Web com display virtual 8x32
- * 2026/01/29 - Modificado: Dados climáticos detalhados na web - CORRIGIDO
- * 2026/01/29 - Versão CORRIGIDA: Display virtual funcionando
+ * 2026/01/29 - Modificado: Dados climáticos detalhados na web
+ * 2026/01/29 - Correção display virtual
+ * 2026/01/29 - Correção mensagem clima
  */
 
 #include "Arduino.h"
@@ -200,6 +201,10 @@ const unsigned long BRIGHTNESS_CHECK_INTERVAL = 60000;  // Verificar a cada minu
 // Definir qual fonte usar para texto geral (não-relógio)
 const uint8_t* textFont = font_emr;
 
+// Controle de sincronização NTP
+bool ntpSynced = false;
+unsigned long ntpLastCheck = 0;
+
 /* ================== WIFI E NTP ================== */
 WiFiManager wifiManager;
 WiFiUDP ntpUDP;
@@ -288,6 +293,11 @@ void applySettingsFromEEPROM() {
   weatherLang = "&lang=" + String(settings.weatherLang);
   weatherUpdateInterval = settings.weatherUpdateInterval;
 
+  // Limpar espaços ao carregar
+  weatherAPIKey.trim();
+  weatherLat.trim();
+  weatherLon.trim();
+
   clockDisplayDuration = settings.clockDisplayDuration;
 
   if (clockDisplayDuration < 10) {
@@ -315,20 +325,71 @@ void updateWiFiManagerBuffers() {
 }
 
 void updateEEPROMStructure() {
+  // Configurações de tempo
   settings.utcOffset = utcOffset;
   settings.is12H = is12HFormat;
   settings.observeDST = observeDST;
   settings.dstMode = dstMode;
   settings.dstExtraHours = dstExtraHours;
 
+  // Configurações de clima
   settings.weatherEnabled = weatherEnabled;
+  
+  // Limpar e salvar API Key com garantia de null-terminator
+  weatherAPIKey.trim();
+  memset(settings.weatherAPIKey, 0, sizeof(settings.weatherAPIKey)); // Limpar buffer
   strncpy(settings.weatherAPIKey, weatherAPIKey.c_str(), sizeof(settings.weatherAPIKey) - 1);
+  settings.weatherAPIKey[sizeof(settings.weatherAPIKey) - 1] = '\0'; // Garantir null-terminator
+  
+  // Limpar e salvar Latitude
+  weatherLat.trim();
+  memset(settings.weatherLat, 0, sizeof(settings.weatherLat)); // Limpar buffer
   strncpy(settings.weatherLat, weatherLat.c_str(), sizeof(settings.weatherLat) - 1);
+  settings.weatherLat[sizeof(settings.weatherLat) - 1] = '\0'; // Garantir null-terminator
+  
+  // Limpar e salvar Longitude
+  weatherLon.trim();
+  memset(settings.weatherLon, 0, sizeof(settings.weatherLon)); // Limpar buffer
   strncpy(settings.weatherLon, weatherLon.c_str(), sizeof(settings.weatherLon) - 1);
-  strncpy(settings.weatherLang, weatherLang.substring(6).c_str(), sizeof(settings.weatherLang) - 1);
+  settings.weatherLon[sizeof(settings.weatherLon) - 1] = '\0'; // Garantir null-terminator
+  
+  // Salvar idioma (remover "&lang=" se presente)
+  String lang = weatherLang;
+  if (lang.startsWith("&lang=")) {
+    lang = lang.substring(6);
+  }
+  lang.trim();
+  memset(settings.weatherLang, 0, sizeof(settings.weatherLang)); // Limpar buffer
+  strncpy(settings.weatherLang, lang.c_str(), sizeof(settings.weatherLang) - 1);
+  settings.weatherLang[sizeof(settings.weatherLang) - 1] = '\0'; // Garantir null-terminator
+  
   settings.weatherUpdateInterval = weatherUpdateInterval;
 
+  // Configurações de exibição
   settings.clockDisplayDuration = clockDisplayDuration;
+  
+  // Garantir duração mínima
+  if (settings.clockDisplayDuration < 10) {
+    settings.clockDisplayDuration = 10;
+  }
+
+  // Debug no Serial Monitor
+  Serial.println("💾 Salvando configurações na EEPROM:");
+  Serial.print("  API Key salva: '");
+  Serial.print(settings.weatherAPIKey);
+  Serial.println("'");
+  Serial.print("  Latitude salva: '");
+  Serial.print(settings.weatherLat);
+  Serial.println("'");
+  Serial.print("  Longitude salva: '");
+  Serial.print(settings.weatherLon);
+  Serial.println("'");
+  Serial.print("  Idioma salvo: '");
+  Serial.print(settings.weatherLang);
+  Serial.println("'");
+  Serial.print("  Duração relógio: ");
+  Serial.print(settings.clockDisplayDuration);
+  Serial.println(" segundos");
 }
 
 /* ================== CALLBACK WIFIMANAGER ================== */
@@ -350,6 +411,11 @@ void saveConfigCallback() {
   weatherLon = String(pWeatherLon.getValue());
   weatherLang = "&lang=" + String(pWeatherLang.getValue());
   weatherUpdateInterval = atoi(pWeatherUpdateInterval.getValue());
+
+  // Limpar espaços das strings
+  weatherAPIKey.trim();
+  weatherLat.trim();
+  weatherLon.trim();
   
   clockDisplayDuration = atoi(pClockDisplayDuration.getValue());
 
@@ -660,12 +726,15 @@ void updateWeatherData() {
     return;
   }
 
-  if (weatherClient.connect("api.openweathermap.org", 80)) {
+ if (weatherClient.connect("api.openweathermap.org", 80)) {
     String url = "/data/2.5/weather?";
     url += "lat=" + weatherLat;
     url += "&lon=" + weatherLon;
     url += "&units=metric";
+
+    weatherAPIKey.trim();
     url += "&appid=" + weatherAPIKey;
+    
     url += weatherLang;
 
     weatherClient.println("GET " + url + " HTTP/1.1");
@@ -1211,14 +1280,12 @@ String getHTML() {
     
     // Link 1: API completa
     html += "<p><strong>API Completa:</strong> ";
+
     String apiUrl = "https://api.openweathermap.org/data/2.5/weather?";
     apiUrl += "lat=" + weatherLat + "&";
     apiUrl += "lon=" + weatherLon + "&";
     apiUrl += "units=metric&";
     apiUrl += "appid=" + weatherAPIKey;
-    if (weatherLang.length() > 6) {
-      apiUrl += weatherLang;
-    }
     html += "<a href='" + apiUrl + "' target='_blank' rel='noopener'>Abrir API</a></p>";
     
     // Link 2: JSON formatado (jsonviewer)
@@ -1252,7 +1319,6 @@ String getHTML() {
   
   html += "<div class='section'>";
   html += "<p><small>ESP8266 LED Matrix Clock v2.0 • ";
-  html += String(dayNames[w-1]) + ", " + String(d) + " " + monthNames[mo-1] + " " + String(ye);
   html += String(dayNames[w]) + ", " + String(d) + " " + monthNames[mo-1] + " " + String(ye);
   html += "</small></p>";
   html += "</div>";
@@ -1529,14 +1595,17 @@ void setup() {
   Serial.println("🚀 Relógio LED Matrix ESP8266 - Iniciando");
   Serial.println("==========================================");
 
+  // Carregar configurações da EEPROM
   loadSettings();
   applySettingsFromEEPROM();
   updateWiFiManagerBuffers();
 
+  // Inicializar display
   initMAX7219();
   clr();
   refreshAll();
 
+  // Mostrar "BOOT"
   showChar('B', 5);
   showChar('O', 11);
   showChar('O', 17);
@@ -1546,6 +1615,7 @@ void setup() {
   clr();
   refreshAll();
 
+  // Configurar WiFiManager
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setConfigPortalTimeout(180);
 
@@ -1565,6 +1635,7 @@ void setup() {
   pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
   delay(100);
 
+  // Verificar modo configuração via botão
   bool configMode = showCountdown();
   
   if (configMode) {
@@ -1591,9 +1662,11 @@ void setup() {
     clr();
     refreshAll();
     displayIPScroll();
+
   } else {
     Serial.println("🤖 Modo Automático ativado");
-    
+
+    // Mostrar "AUTO"
     showChar('A', 6);
     showChar('U', 11);
     showChar('T', 16);
@@ -1602,6 +1675,7 @@ void setup() {
     delay(1000);
     clr();
 
+    // Tentar conexão automática
     if (!wifiManager.autoConnect("Relogio NTP+Clima")) {
       Serial.println("❌ Falha na conexão WiFi. Iniciando modo configuração...");
       wifiManager.startConfigPortal("Relogio NTP+Clima");
@@ -1616,34 +1690,50 @@ void setup() {
     }
   }
 
+  // Iniciar cliente NTP (modo assíncrono)
   timeClient.begin();
-  delay(2000);
+  timeClient.setUpdateInterval(3600000); // 1 hora
+  timeClient.forceUpdate(); // Inicia sincronização em background
 
-  if (timeClient.update()) {
-    updateTime();
-    Serial.println("✅ Sincronização NTP realizada com sucesso");
-  } else {
-    h = 0;
-    m = 23;
-    s = 0;
-    Serial.println("⚠️ Falha na sincronização NTP. Usando hora interna");
-  }
+  // Mostrar "NTP" enquanto sincroniza
+  clr();
+  showChar('N', 5);
+  showChar('T', 11);
+  showChar('P', 17);
+  refreshAll();
+  delay(1000);
+  
+  // Inicializar hora com valores padrão (serão atualizados quando NTP sincronizar)
+  h = 0;
+  m = 0;
+  s = 0;
+  
+  Serial.println("🔄 Sincronização NTP iniciada em background...");
 
-  if (weatherEnabled && weatherAPIKey.length() > 0) {
+  // Atualizar dados climáticos (se configurado)
+  if (weatherEnabled && weatherAPIKey.length() > 0 && weatherAPIKey.length() == 32) {
+    Serial.println("🌤️ Atualizando dados meteorológicos...");
     updateWeatherData();
-    Serial.println("🌤️ Dados meteorológicos atualizados");
+  } else if (weatherEnabled) {
+    Serial.println("⚠️ Clima habilitado mas API Key inválida ou não configurada");
+    Serial.print("   Tamanho da API Key: ");
+    Serial.println(weatherAPIKey.length());
   }
 
+  // Atualizar string de informações
   updateInfoString();
 
+  // Configurar brilho inicial
   updateBrightness();
 
+  // Iniciar contagem do relógio
   clockStartTime = millis();
   showAnimClock();
 
   // Iniciar servidor web
   setupServer();
-  
+
+  // Mostrar status final no Serial Monitor
   Serial.println("\n==========================================");
   Serial.println("✅ SISTEMA INICIALIZADO COM SUCESSO!");
   Serial.println("==========================================");
@@ -1659,6 +1749,9 @@ void setup() {
   Serial.print("👉 http://");
   Serial.println(WiFi.localIP());
   Serial.println("==========================================");
+  
+  // Pequeno delay para estabilização
+  delay(500);
 }
 
 /* ================== LOOP ================== */
@@ -1666,6 +1759,23 @@ void loop() {
   static unsigned long lastClockUpdate = 0;
   static unsigned long lastNTPUpdate = millis();
   static unsigned long lastSerialPrint = 0;
+
+// Verificar sincronização NTP em background
+if (!ntpSynced) {
+  if (timeClient.update()) { // Não bloqueia, apenas verifica se tem nova resposta
+    updateTime();
+    ntpSynced = true;
+    Serial.println("✅ Sincronização NTP concluída!");
+    Serial.print("🕒 Hora atualizada: ");
+    Serial.println(formatTime());
+  } else if (millis() - ntpLastCheck > 5000) { // Verificar a cada 5 segundos
+    ntpLastCheck = millis();
+    if (!timeClient.forceUpdate()) { // Tenta novamente
+      Serial.println("🔄 Tentando sincronização NTP...");
+    }
+  }
+}
+
 
   if (millis() - lastClockUpdate >= 1000) {
     lastClockUpdate = millis();
@@ -1684,14 +1794,12 @@ void loop() {
     updateBrightness();
   }
 
-  if (millis() - lastNTPUpdate >= 3600000) {
-    lastNTPUpdate = millis();
-    if (WiFi.status() == WL_CONNECTED) {
-      updateTime();
-      Serial.print("🔄 Sincronização NTP realizada: ");
-      Serial.println(formatTime());
-    }
+if (millis() - lastNTPUpdate >= 3600000 && WiFi.status() == WL_CONNECTED) {
+  lastNTPUpdate = millis();
+  if (timeClient.forceUpdate()) { // Atualização assíncrona
+    Serial.println("🔄 Sincronização NTP periódica iniciada...");
   }
+}
 
   // Mostrar status periódico no Serial Monitor
   if (millis() - lastSerialPrint >= 30000) { // A cada 30 segundos
